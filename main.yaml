@@ -1,0 +1,23 @@
+---
+- name: Setup GitLab Admin User
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    gitlab_url: "http://GITLAB_URL"
+    gitlab_token: "GITLAB_TOKEN"
+    gitlab_structure:
+    - name: "engineering"
+      projects:
+        - name: "api"
+        - name: "frontend"
+      subgroups:
+        - name: "devops"
+          projects:
+            - name: "ci-cd"
+    - name: "marketing"
+      projects:
+        - name: "website"
+
+  roles:
+    - gitlab_hierarchy

@@ -1,0 +1,36 @@
+---
+default_project_config:
+  visibility: "private"
+  initialize_with_readme: false
+  issues_enabled: true
+  merge_requests_enabled: true
+  wiki_enabled: false
+  snippets_enabled: true
+  auto_devops_enabled: false
+  packages_enabled: false
+  container_registry_enabled: false
+  state: present
+
+default_group_config:
+  state: present
+
+gitlab_structure:
+  - name: "group1"
+    description: "Example group"
+    projects:
+      - name: "project1"
+        description: "Example project 1"
+      - name: "project2"
+        description: "Example project 2"
+    subgroups:
+      - name: "subgroup1"
+        description: "Example subgroup"
+        projects:
+          - name: "subproject1"
+            description: "Example subproject 1"
+  - name: "group2"
+    description: "Another group"
+    projects:
+      - name: "projectA"
+        description: "Example project A"
+

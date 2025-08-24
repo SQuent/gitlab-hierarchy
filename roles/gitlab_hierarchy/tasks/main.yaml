@@ -1,0 +1,53 @@
+---
+- name: Flatten group structure
+  ansible.builtin.set_fact:
+    flattened_result: "{{ gitlab_structure | flatten_structure }}"
+    
+- name: Set flattened groups and projects
+  ansible.builtin.set_fact:
+    flattened_groups: "{{ flattened_result.groups }}"
+    flattened_projects: "{{ flattened_result.projects }}"
+- name: Merge group defaults
+  ansible.builtin.set_fact:
+    merged_groups: >-
+      {{ flattened_groups | map('combine', default_group_config, recursive=True) | list }}
+- name: Create or update groups
+  community.general.gitlab_group:
+    api_url: "{{ gitlab_url }}"
+    api_token: "{{ gitlab_token }}"
+    name: "{{ group.name }}"
+    path: "{{ group.path | default(group.name | lower | replace(' ', '-')) }}"
+    description: "{{ group.description | default('') }}"
+    parent: "{{ group.parent | default(omit) }}"
+    visibility: "{{ group.visibility | default('private') }}"
+    state: "{{ group.state }}"
+  loop: "{{ merged_groups | sort(attribute='depth') }}"
+  loop_control:
+    loop_var: group
+    label: "{{ group.name }} (depth: {{ group.depth }})"
+
+- name: Merge project defaults
+  ansible.builtin.set_fact:
+    merged_projects: >-
+      {{ flattened_projects | map('combine', default_project_config, recursive=True) | list }}
+
+- name: Create or update projects
+  community.general.gitlab_project:
+    api_url: "{{ gitlab_url }}"
+    api_token: "{{ gitlab_token }}"
+    name: "{{ project.name }}"
+    group: "{{ project.group_path }}"
+    description: "{{ project.description | default('') }}"
+    visibility: "{{ project.visibility }}"
+    initialize_with_readme: "{{ project.initialize_with_readme }}"
+    issues_enabled: "{{ project.issues_enabled }}"
+    merge_requests_enabled: "{{ project.merge_requests_enabled }}"
+    wiki_enabled: "{{ project.wiki_enabled }}"
+    snippets_enabled: "{{ project.snippets_enabled }}"
+    packages_enabled: "{{ project.packages_enabled }}"
+    state: "{{ project.state }}"
+  loop: "{{ merged_projects }}"
+  loop_control:
+    loop_var: project
+    label: "{{ project.name }} (group: {{ project.group }})"
+  register: project_results
